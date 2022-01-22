@@ -1,0 +1,63 @@
+---
+title: "R playground"
+author: "[Leyla Nunez](https://github.com/leynu)"
+date: "Last updated: `r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    css: style.css
+    theme: united
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: false
+    #code_folding: hide
+    code_download: true
+bibliography: references.bib
+link-citations: true
+---
+
+# Install missing packages {-}
+
+The argument `install = TRUE` in `xfun::pkg_attach()` allows you to do the above task, e.g.,
+
+```{r eval=FALSE, include=TRUE}
+xfun::pkg_attach(c('ggplot2', 'dplyr', 'shiny'), install = TRUE)
+```
+
+Or use the shorthand `xfun::pkg_attach2()`, which is essentially `pkg_attach(..., install = TRUE)`:
+
+```{r eval=FALSE, include=TRUE}
+xfun::pkg_attach2(c('ggplot2', 'dplyr', 'shiny'))
+```
+[For more details ...](https://yihui.org/en/2018/09/xfun-pkg-attach/)
+
+
+# Skimr
+
+  - [Skimming through {skimr}](https://yihui.org/en/2018/09/xfun-pkg-attach/)
+
+  - [Code Through - skimr](https://rpubs.com/jsherwood/632878)
+
+# Quantile
+
+```{r}
+set.seed(123)
+vec <- rpois(n=20, lambda = 18)
+# using sapply()
+t(sapply(1:9, function(x) quantile(vec, type = x)))
+# or using map_df()
+purrr::map_df(1:9, ~quantile(vec, type = .))
+```
+
+
+
+
+# R session info {-}
+
+```{r session info, comment=""}
+xfun::session_info()
+```
+
+# References {-}
