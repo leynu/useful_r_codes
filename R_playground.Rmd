@@ -16,9 +16,73 @@ output:
     code_download: true
 bibliography: references.bib
 link-citations: true
+editor_options:
+  chunk_output_type: console
 ---
 
-# Install missing packages {-}
+#   ____________________________________________________________________________
+#   Library                                                                 ####
+
+```{r include=FALSE}
+
+library(tidyverse)
+library(here)
+
+```
+
+
+
+
+#   ____________________________________________________________________________
+#   Useful Addins                                                           ####
+
+
+```{r}
+
+# provides addins to facilitate writing in markdown with RStudio
+library(remedy)
+
+# Helps to edit gplot2 themes
+# install.packages("ggThemeAssist")
+library(ggThemeAssist)
+
+# install.packages("devtools")
+# (short for structuring code) package contains tools to organize and abstract your code better.
+#devtools::install_github("lorenzwalthert/strcode")
+library(strcode)
+
+# install.packages("datapasta")
+# Is about reducing resistance associated with copying and pasting data to and from R.
+library(datapasta)
+
+
+# install.packages("devtools")
+#devtools::install_github("tjmahr/WrapRmd")
+library(WrapRmd)
+# This package used the commonmark package to wrap and reformat to markdown text. Using commonmark means that it can wrap links and markdown lists. The package does some additional work to handle inline R Markdown.
+# Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum a
+# `r max(iris$Sepal.Length)`, viverra nisl at, luctus ante =
+# `r length(letters) * 2 + 100`.
+# You highlight the text, and hit Ctrl/Cmd + Shift + / to wrap the text and get:  
+# PÅ MIN MAC - ANVÄND Ctrl + Shift + /
+# The package wraps lines using a maximum width set by options("WrapRmd.width") which currently defaults to 80 characters. 
+
+```
+
+
+```{r}
+
+
+# install.packages("devtools")
+devtools::install_github("tjmahr/WrapRmd")
+
+```
+
+
+#   ____________________________________________________________________________
+#  Install missing packages                                                ####
+
+## `xfun` package
 
 The argument `install = TRUE` in `xfun::pkg_attach()` allows you to do the above task, e.g.,
 
@@ -33,28 +97,580 @@ xfun::pkg_attach2(c('ggplot2', 'dplyr', 'shiny'))
 ```
 [For more details ...](https://yihui.org/en/2018/09/xfun-pkg-attach/)
 
+##  ............................................................................
+## `pacman` package                                                         ####
 
-# Skimr
+Note that the p_load function also checks whether a package is installed already. If the package is not installed yet, it is installed automatically by the `pacman` package.
+
+```{r}
+#install.packages("pacman")         # Install pacman package
+library("pacman")                  # Load pacman package
+
+p_load(ggplot2, dplyr, stringr)    # Install & load packages
+```
+
+
+##  ............................................................................
+## Reading data in R from package                                        ####
+
+```{r}
+#install.packages("ISwR")  #install the package ISLR
+#library(ISwR)
+data(package = "ISwR")  #list the datasets in the package ISLR
+
+# 1: Can load the dataset without loading the package
+tlc <- ISwR::tlc
+# 2: You can do it like this 
+data(energy, package = "ISwR")  #list the datasets in the package ISLR
+str(energy)
+
+```
+
+
+
+##  ............................................................................
+##  Skimr                                                                  ####
 
   - [Skimming through {skimr}](https://yihui.org/en/2018/09/xfun-pkg-attach/)
 
   - [Code Through - skimr](https://rpubs.com/jsherwood/632878)
 
-# Quantile
+##  ............................................................................
+##  Quantile                                                                  ####
 
 ```{r}
 set.seed(123)
-vec <- rpois(n=20, lambda = 18)
+vec <- rpois(n = 20, lambda = 18)
 # using sapply()
 t(sapply(1:9, function(x) quantile(vec, type = x)))
 # or using map_df()
-purrr::map_df(1:9, ~quantile(vec, type = .))
+purrr::map_df(1:9, ~ quantile(vec, type = .))
+```
+
+#   ____________________________________________________________________________
+#   `Naniar` PACKAGE                                                        ####
+
+
+```{r }
+#Later
+```
+
+
+#   ____________________________________________________________________________
+#   `Janitor` PACKAGE                                                           ####
+
++ [R Packages: {janitor} for Data Cleaning](https://www.r-bloggers.com/2020/08/r-packages-janitor-for-data-cleaning/)
++ [Overview of janitor functions](https://cran.r-project.org/web/packages/janitor/vignettes/janitor.html)
+
+
+
+```{r}
+
+library(janitor)
+library(readxl)
+mymsa <- read_excel("data/mymsa.xlsx")
+head(names(mymsa))
+
+x <- janitor::clean_names(mymsa)
+head(names(x))
+
+```
+- Returns names with only lowercase letters, with _ as a separator
+- Handles special characters and spaces
+- Appends numbers to duplicated names
+- Converts “%” to “percent” to retain meaning
+
+`tabyl()` takes a vector and returns a frequency table, like `table()`. But its additional features are:
+```{r}
+tabyl(x, meat_colour)
+
+table(x$meat_colour)
+
+x %>% 
+  tabyl(meat_colour)
+
+# We can format the percent column nicely using the adorn_pct_formatting function
+x %>%
+  tabyl(meat_colour) %>%
+  adorn_pct_formatting(digits = 0, affix_sign = TRUE)
+
+data(mtcars)
+
+```
+The `remove_empty()` function removes any **columns** that are entirely empty and entire **rows** that are entirely empty.
+
+
+
+```{r}
+
+# Frequency table + Total
+mtcars %>% 
+  tabyl(cyl) %>%     
+  adorn_totals(where = c("row")) %>% 
+  adorn_pct_formatting(digits = 1)  
+
+# Crosstabulation
+mtcars %>% 
+  tabyl(cyl, gear) %>% 
+  adorn_totals(where = c("row","col")) %>%
+  adorn_percentages(denominator = "col") %>% 
+  adorn_pct_formatting(digits = 1) %>% 
+  adorn_ns(position = "front") 
+```
+
+
+```{r}
+x <- remove_empty(x, which = c("rows","cols"))
+
+
+# Always use
+x <- read_excel("data/mymsa.xlsx") %>%
+  clean_names() %>%
+  remove_empty()
+```
+
+## Crosstabulation
+
+The `tabyl()` function generalises to crosstabulations of two (or more) variables. 
+
+```{r}
+x %>% tabyl(meat_colour, plant)
+
+# We can add row and/or column totals using adorn_totals()
+# row totals
+x %>% 
+  tabyl(meat_colour, plant) %>% 
+  adorn_totals(where = "row")
+# column totals
+x %>% 
+  tabyl(meat_colour, plant) %>% 
+  adorn_totals(where = "col")
+# row and column totals
+x %>% 
+  tabyl(meat_colour, plant) %>% 
+  adorn_totals(where = c("row","col"))
+
+```
+
+We can also convert to percentages using `adorn_percentages()` and format nicely again using `adorn_pct_formatting()`
+```{r}
+
+x %>% 
+  tabyl(meat_colour, plant) %>% 
+  adorn_totals(where = c("row","col")) %>% 
+  adorn_percentages(denominator = "col") %>% 
+  adorn_pct_formatting(digits = 0) 
+
+# And add back the counts using the adorn_ns() function
+x %>% 
+  tabyl(meat_colour, plant) %>% 
+  adorn_totals(where = c("row","col")) %>% 
+  adorn_percentages(denominator = "col") %>% 
+  adorn_pct_formatting(digits = 0) %>% 
+  adorn_ns(position = "front")
+
+```
+
+## `get_dupes()`
+
+To examining duplicate records during data cleaning
+```{r}
+#The unique identifier is rfid so we can call get_dupes on the rfid column:
+x %>% get_dupes(rfid)
+
+```
+
+## `excel_numeric_to_date()`
+
+```{r}
+excel_numeric_to_date(41103)
+#> [1] "2012-07-13"
+excel_numeric_to_date(41103.01) # ignores decimal places, returns Date object
+#> [1] "2012-07-13"
+excel_numeric_to_date(41103.01, include_time = TRUE) # returns POSIXlt object
+#> [1] "2012-07-13 00:14:24 EDT"
+excel_numeric_to_date(41103.01, date_system = "mac pre-2011")
+#> [1] "2016-07-14"
+```
+
+## `excel_numeric_to_date()`
+
+Convert a mix of date and datetime formats to date. Handy when reading many spreadsheets that should have the same column formats, but don’t.
+
+```{r}
+convert_to_date(c("2020-02-29", "40000.1"))
+#> [1] "2020-02-29" "2009-07-06"
+```
+## `remove_constant()` columns
+
+Drops columns from a data.frame that contain only a single constant value 
+
+```{r}
+a <- data.frame(good = 1:3, boring = "the same")
+a %>% remove_constant()
+```
+
+## `round_half_up()`
+
+R uses 'banker’s rounding', i.e., halves are rounded to the **nearest even number**. This function, an exact implementation of [stackoverflow](https://stackoverflow.com/questions/12688717/round-up-from-5/12688836#12688836), will round all halves up.
+
+```{r}
+x <- c(1.85, 1.54, 1.65, 1.85, 1.84)
+round(x, 1)
+
+round_half_up(x, 1)
+
+```
+## CHECK!
+
+- `round_to_fraction()`
+- `top_levels()`
+
+
+#   ____________________________________________________________________________
+#   `gtsummary` PACKAGE                                                      ####
+
+[gtsummary package](https://www.danieldsjoberg.com/gtsummary/index.html)
+Compare with `janitor` and __crosstable__ above
+
+```{r}
+library(janitor)
+library(gtsummary)
+library(NHANES)
+
+# make dataset with a few variables to summarize
+trial <- NHANES %>% 
+  clean_names() %>%
+  select(age, gender, race1, education) %>% 
+  slice_head(n = 100) 
+
+# summarize the data with our package
+table1 <- tbl_summary(trial)
+table1
+
+table2 <- 
+  tbl_summary(
+    trial,
+    by = gender, # split table by group
+    missing = "ifany" # don't list missing data separately 
+    #"ifany”, “always”, “no”
+  ) %>%
+  add_n() %>% # add column with total number of non-missing observations
+  add_p() %>% # test for a difference between groups
+  modify_header(label = "**Variable**") %>% # update the column header
+  bold_labels()
+table2
+```
+
+## Regression Models  
+
+```{r}
+# A "stupid" model but just testing the output
+
+lung <- survival::lung %>% 
+  mutate(status2 = status-1,
+         sex2 = as.character(sex))
+
+mod1 <- glm(status2 ~ sex2 + age + ph.karno, 
+            lung, 
+            family = binomial)
+
+t1 <- tbl_regression(mod1, exponentiate = TRUE)
+t1
+
+```
+
+## Side-by-side Regression Models
+
+You can also present side-by-side regression model results using `tbl_merge()`
+
+
+```{r}
+
+library(survival)
+
+# build survival model table
+t2 <-
+  coxph(Surv(time, status2) ~ sex2 + age + ph.karno, data = lung) %>%
+  tbl_regression(exponentiate = TRUE)
+
+# merge tables 
+tbl_merge_ex1 <-
+  tbl_merge(
+    tbls = list(t1, t2),
+    tab_spanner = c("**Tumor Response**", "**Time to Death**")
+  )
+tbl_merge_ex1
+
+
+```
+
+## gtsummary + R Markdown
+
+[gtsummary + R Markdown](https://www.danieldsjoberg.com/gtsummary/articles/rmarkdown.html)
+
+
+```{r}
+
+library(flextable)
+
+tbl_summary(trial) %>%
+  as_flex_table()
+
 ```
 
 
 
 
-# R session info {-}
+
+
+#   ____________________________________________________________________________
+#   `DataExplorer` PACKAGE                                               ####
+
+## Checking missing 
+
+```{r}
+# For our case-study we are using data from the #TidyTuesday Project archive.
+
+# Packages
+# library(tidytuesdayR)
+# library(DataExplorer)
+# library(tidyquant)
+
+# Import Data ----
+tuesdata <- tidytuesdayR::tt_load("2018-05-07") 
+coffee_chains_raw <- tuesdata$week6_coffee_chains
+
+dplyr::glimpse(coffee_chains_raw)
+
+DataExplorer::plot_missing(
+  title = "% of Missing Data (filtered to cols w/missing data)",
+  data = coffee_chains_raw,
+  ggtheme = tidyquant::theme_tq(),
+  missing_only = TRUE
+) # if no missing - will not be plotted
+
+```
+
+
+
+
+
+
+
+#   ____________________________________________________________________________
+#   `datawizard()` package                                                      ####
+
+
+
+- Many things 
+
+```{r}
+
+# Libraries -----
+# install.packages("bayestestR")
+library(datawizard)
+
+data(iris)
+describe_distribution(iris)
+
+```
+
+## reshape
+
+```{r}
+
+wide_data <- data.frame(replicate(5, rnorm(10)))
+
+# From wide to long
+long_data <- data_to_long(wide_data)
+long_data <- data_to_long(wide_data, rows_to = "Row_ID") # Save row number
+
+# From long to wide
+data_to_wide(long_data,
+  colnames_from = "Name",
+  values_from = "Value",
+  rows_from = "Row_ID"
+)
+
+```
+
+#   ____________________________________________________________________________
+#   Data cleaning                                                           ####
+
+
+
+## separate()
+
+Separate a column of a dataframe in undefined number of columns with
+
+```{r}
+
+# tidyr is part of tidyverse
+# library(tidyverse)
+
+df <-  data.frame(x = c("a", "a.b","a.b.c","a.b.d", "a.d"))
+# 1: check how many "words" there are 
+nmax <- max(stringr::str_count(df$x, "\\.")) + 1
+nmax 
+# 2: separate() from tidyr
+tidyr::separate(df, x, paste0("col", seq_len(nmax)), sep = "\\.", fill = "right")
+
+
+```
+
+#   ____________________________________________________________________________
+#   `Easystats`                                                             ####
+
+Easystats is a meta-package
+
+Test if your model is a good model!
+
+
+```{r}
+
+install.packages("easystats", repos = "https://easystats.r-universe.dev")
+# The package is currently not available on CRAN
+library("easystats")
+
+lm(Sepal.Length ~ Species, data=iris) %>%
+  report() 
+
+
+```
+ 
+`performance()` PACKAGE
+
+Test if your model is a good model!
+
+
+#   ____________________________________________________________________________
+#   `Dput()`                                                                 ####
+
+
+
+```{r}
+#Later
+```
+
+
+
+
+
+#   ____________________________________________________________________________
+#   `num_range()` package                                                      ####
+
+In R, If you have a dataframe where several variable names start with the same
+characters, and end with different numbers ... You can use num_range to
+retrieve variables with that structure.
+
+Check:
+
++ [Select variables that match a pattern](https://tidyselect.r-lib.org/reference/starts_with.html)
++ [Subset columns using their names and types](https://dplyr.tidyverse.org/reference/select.html)
+
+
+```{r}
+mydata <- tibble(var_1 = rnorm(6),
+                 x = dnorm(var_1),
+                 var_2 = 1:6,
+                 y = var_1*5,
+                 var_3 = rep(6, 6) %% var_2)
+
+#num_range(): Matches a numerical range like x01, x02, x03
+mydata %>% 
+  select(num_range('var_', 1:3))
+
+mydata %>% 
+  select(paste0('var_', 1:3))
+
+mydata %>% 
+  select(matches('var_', 1:3))
+```
+
+
+#   ____________________________________________________________________________
+#   `glue()` package                                                       ####
+
+```{r}
+
+#later
+
+```
+
+
+#   ____________________________________________________________________________
+#   `scales` package                                                       ####
+
+# Just so you can at the colors you have selected
+
+```{r}
+
+library(scales)
+my_colors <- c('#ffa274', "#5a3bd7", "#ffaea4", "#aaf2d1")
+show_col(my_colors)
+
+```
+
+
+#   ____________________________________________________________________________
+#   `vroom` Package vs readr                                                  ####
+
+`vroom()` guesses the delimiter of the file automatically based on the first few lines (this feature is inspired by a similar feature in `data.table::fread())`.
+Check:
+
+[vroom 1.0.0](https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/)
+[vroom Public](https://github.com/r-lib/vroom)
+[Trying the new R vroom Package](https://www.pmassicotte.com/post/2019-07-17-trying-the-vroom-package/)
+
++ Reading delimited files
++ Reading __multiple__ files
++ Reading and writing compressed files
++ Reading remote files
++ Reading and writing from pipe connections
++ Column selection 
++ Name repair - using `janitor` 
++ Column types
+
+
+```{r, eval=F, echo=T}
+
+#install.packages("vroom")
+library(vroom)
+
+# You can use this dataset for testing if needed
+file <- curl::curl_download("https://s3.amazonaws.com/capitalbikeshare-data/201801-capitalbikeshare-tripdata.zip", destfile = tempfile(fileext = ".zip"))
+file <- unzip(file, exdir = tempdir())
+read_csv(file)
+files <- rep(file, 10)
+files
+# for instance:
+df <- vroom(files, .name_repair = ~janitor::make_clean_names(.))
+
+
+```
+
+#   ____________________________________________________________________________
+#   GGplot THEMS                                                            ####
+
+```{r, eval=F, echo=T}
+
+# install.packages("devtools")
+devtools::install_github("PMassicotte/ggpmthemes")
+# Check: 
+# https://github.com/PMassicotte/ggpmthemes
+
+```
+
+
+#   ____________________________________________________________________________
+#   GGplot THEMS                                                            ####
+
+
+
+
+#   ____________________________________________________________________________
+#   R session info {-}                                                     ####
 
 ```{r session info, comment=""}
 xfun::session_info()
